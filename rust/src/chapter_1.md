@@ -17,7 +17,7 @@
 
 ---
 
-## 并发安全
+<!-- ## 并发安全
 
 - 单线程
 - GIL 全局锁
@@ -25,11 +25,11 @@
 - CSP 模型
 - 所有权+类型系统
 
----
+--- -->
 
 ## 举个 🌰
 
-拷贝？引用？
+拷贝？移动？
 
 ```rust
 println!("start");
@@ -46,22 +46,7 @@ let _f = d;
 
 ---
 
-## Borrow
-
-```rust
-println!("start");
-let a = String::from("hello");
-let d = &a;
-// let ref d = a;
-let _e = d;
-let _f = d;
-```
-
----
-
-## 举个 🌰
-
-为什么要 borrow
+## drop
 
 ```rust
 #[derive(Debug)]
@@ -86,6 +71,64 @@ struct MyData {
 #     }
 # }
 
+
+fn main() {
+    {
+        let _ = MyData {
+            data: MyString::from("not used"),
+        };
+        let wrapper = MyData {
+            data: MyString::from("used as variable"),
+        };
+        println!("End of the scope inside main.");
+    }
+
+    println!("End of the scope.");
+}
+```
+
+---
+
+## Borrow
+
+```rust
+println!("start");
+let a = String::from("hello");
+let d = &a;
+// let ref d = a;
+let _e = d;
+let _f = d;
+```
+
+---
+
+## 举个 🌰
+
+为什么要 borrow
+
+```rust
+# #[derive(Debug)]
+# struct MyString(String);
+# impl MyString {
+#     fn from(name: &str) -> Self {
+#         MyString(String::from(name))
+#     }
+# }
+# struct MyData {
+#     data: MyString,
+# }
+
+# impl Drop for MyString {
+#    fn drop(&mut self) {
+#        println!("Dropping MyString with value: {:?}", self.0);
+#    }
+# }
+# impl Drop for MyData {
+#     fn drop(&mut self) {
+#         println!("Dropping MyData with value: {:?}", self.data);
+#     }
+# }
+
 struct MyDataRef<'a> {
     reference: &'a MyData,
 }
@@ -98,9 +141,6 @@ struct MyDataRef<'a> {
 
 fn main() {
     {
-        let _ = MyData {
-            data: MyString::from("not used"),
-        };
         let wrapper = MyData {
             data: MyString::from("used as variable"),
         };
@@ -110,7 +150,6 @@ fn main() {
 
     println!("End of the scope.");
 }
-
 ```
 
 ---
@@ -138,16 +177,16 @@ d = String::from("world");
 回头看看修改的 drop
 
 ```rust
-#[derive(Debug)]
-struct MyString(String);
-impl MyString {
-    fn from(name: &str) -> Self {
-        MyString(String::from(name))
-    }
-}
-struct MyData {
-    data: MyString,
-}
+# #[derive(Debug)]
+# struct MyString(String);
+# impl MyString {
+#     fn from(name: &str) -> Self {
+#         MyString(String::from(name))
+#     }
+# }
+# struct MyData {
+#     data: MyString,
+# }
 
 # impl Drop for MyString {
 #    fn drop(&mut self) {
@@ -218,9 +257,9 @@ println!("After mutation: {}", *borrowed);
 
 - 值有且只有一个所有者, 且所有者离开作用域时, 值将被丢弃
 - 所有权可转移
-- 引用借用
-  - 不可变引用可以有多个
-  - 可变引用同一时间只能有一个
+- 借用
+  - 不可变借用可以有多个
+  - 可变借用同一时间只能有一个
 
 ---
 
@@ -235,7 +274,15 @@ println!("After mutation: {}", *borrowed);
 
 ## lifetimes
 
-生命周期？
+return local reference？
+
+```rust,editable
+#![allow(unused)]
+fn ret_local_ref() -> &str {
+    let my_string = String::from("local string");
+    &my_string
+}
+```
 
 ```rust,editable
 #![allow(unused)]
