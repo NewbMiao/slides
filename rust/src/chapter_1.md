@@ -350,4 +350,4 @@ fn main() {
 - 模式匹配
 - 并发安全(send, sync trait)
 
-[Rust Language Cheat Sheet](https://cheats.rs/)
+> [Rust Language Cheat Sheet](https://cheats.rs/)
